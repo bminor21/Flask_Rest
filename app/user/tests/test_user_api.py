@@ -111,7 +111,6 @@ class PrivateUserApiTests(TestCase):
         self.user = create_user(email='test@django.com',
                                 password='password',
                                 name='name')
-        #self.user = create_user({'email': 'test@django.com', 'password': 'password', 'name': 'name'})
 
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -120,7 +119,10 @@ class PrivateUserApiTests(TestCase):
         """ Test retrieving profile for logged in user """
         res = self.client.get(ME_URL)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, {'name': self.user.name, 'email': self.user.email})
+        self.assertEqual(res.data, {
+            'name': self.user.name,
+            'email': self.user.email
+        })
 
     def test_post_me_not_allowed(self):
         """ Test post is not allowed on me url"""
@@ -130,11 +132,11 @@ class PrivateUserApiTests(TestCase):
 
     def test_update_user_profile(self):
         """ Test updating auth user """
-        payload = {'name': 'myName', 'email': 'test@django.com', 'password': 'password'}
+        payload = {'name': 'myName', 'password': 'password123'}
 
-        res = self.client.post(ME_URL, payload)
+        res = self.client.patch(ME_URL, payload)
 
         self.user.refresh_from_db()
-        #self.assertEqual(self.user.name, payload['name'])
+        self.assertEqual(self.user.name, payload['name'])
         self.assertTrue(self.user.check_password(payload['password']))
-        #self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
